@@ -15,7 +15,25 @@ The goal of this repository is to provide a simple and hackable implementation
 of this loss.
 That way it is easy to copy and paste the code into your own project.
 
+## VICReg
+
+The standard VICReg applies the loss to the global representation of each images.
+It can be applied to any kind of model, as long as it provides a single latent representation
+for each input.
+
 ![VICReg overview](./.images/vicreg-overview.png)
+
+## VICRegL
+
+This version applies a combinaison of a global and local loss.
+The local loss is a VICReg loss but applied to specific patches of an image.
+Patches are first matched using a feature or a distance matching function.
+The global loss is the same loss as the standard VICReg.
+
+This loss is useful if you have a model that output multiple latent
+representation for an image, such as a ViT. Each of these latent representation
+can be mapped to a specific patch location in the original image, allowing a
+patch matching between two version of the same image.
 
 ![VICRegL overview](./.images/vicregl-overview.png)
 
