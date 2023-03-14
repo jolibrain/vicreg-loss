@@ -83,7 +83,7 @@ class VICRegLoss(nn.Module):
         return cov_loss
 
     def forward(self, x: torch.Tensor, y: torch.Tensor) -> Dict[str, torch.Tensor]:
-        """Computes the VICRegL loss.
+        """Computes the VICReg loss.
 
         ---
         Args:
