@@ -3,6 +3,7 @@ from typing import Dict, Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from einops import repeat
 
 from .vicreg import VICRegLoss
 
@@ -242,13 +243,15 @@ class VICRegLLoss(nn.Module):
         _, element_indices = topk_values.topk(k=num_matches, dim=-1, largest=False)
         candidate_indices = topk_indices.gather(dim=-1, index=element_indices)
 
+        # To the right shape.
+        element_indices = repeat(element_indices, "b n -> b n h", h=input_maps.shape[2])
+        candidate_indices = repeat(
+            candidate_indices, "b n -> b n h", h=candidate_maps.shape[2]
+        )
+
         # Gather the rights features map.
-        filtered_input_maps = input_maps.gather(
-            dim=1, index=element_indices.unsqueeze(-1)
-        )
-        filtered_candidate_maps = candidate_maps.gather(
-            dim=1, index=candidate_indices.unsqueeze(-1)
-        )
+        filtered_input_maps = input_maps.gather(dim=1, index=element_indices)
+        filtered_candidate_maps = candidate_maps.gather(dim=1, index=candidate_indices)
 
         return filtered_input_maps, filtered_candidate_maps
 

@@ -1,2 +1,2 @@
 from .vicreg import VICRegLoss
-from .vicreg_l import VICRegLLoss
+from .vicregl import VICRegLLoss
