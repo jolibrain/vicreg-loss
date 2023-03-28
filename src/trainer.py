@@ -16,8 +16,18 @@ from .vicreg import VICRegLoss
 
 class VICRegTrainer:
     def __init__(self):
-        self.loss = VICRegLoss()
-        self.model = VICRegModel(1, 3, 12, 24)
+        self.loss = VICRegLoss(
+            inv_coeff=25,
+            var_coeff=15,
+            cov_coeff=1,
+            gamma=1,
+        )
+        self.model = VICRegModel(
+            in_channels=1,
+            n_layers=3,
+            hidden_size=12,
+            representation_size=24,
+        )
         self.optimizer = optim.AdamW(self.model.parameters(), lr=1e-3)
 
         # Create train and validation datasets.
@@ -33,7 +43,7 @@ class VICRegTrainer:
         self.model.eval()
 
         metrics = defaultdict(list)
-        for batch in dataloader:
+        for batch, _ in dataloader:
             batch = batch.to(device)
             x = self.train_dataset.augments(batch)
             y = self.train_dataset.augments(batch)
@@ -49,17 +59,49 @@ class VICRegTrainer:
 
         return mean_metrics
 
+    @torch.no_grad()
+    def embeddings_table(
+        self, dataloader: DataLoader, n_batches: int, device: str
+    ) -> dict:
+        table = {
+            "columns": ["image", "label"],
+            "data": [],
+        }
+
+        # Add embedding columns.
+        images, _ = next(iter(dataloader))
+        h, _ = self.model(images.to(device))
+        for i in range(h.shape[1]):
+            table["columns"].append(f"embedding_{i}")
+
+        # Compute embeddings for the first `n_batches`
+        # of the dataloader.
+        for batch_count, (images, labels) in enumerate(dataloader):
+            if batch_count >= n_batches:
+                break
+
+            images = images.to(device)
+            h, _ = self.model(images)
+
+            data = [
+                [wandb.Image(image.cpu()), label, *embedding.cpu()]
+                for image, label, embedding in zip(images, labels, h)
+            ]
+            table["data"].extend(data)
+
+        return table
+
     def launch_training(self, n_epochs: int, device: str):
         wandb.init(project="vicreg")
 
         self.model.to(device)
-        summary(self.model, self.train_dataset[0].shape, batch_dim=0, device=device)
+        summary(self.model, self.train_dataset[0][0].shape, batch_dim=0, device=device)
 
         wandb.watch(self.model, log="all")
 
         for _ in tqdm(range(n_epochs), desc="Epochs"):
             self.model.train()
-            for batch in tqdm(self.train_loader, desc="Training"):
+            for batch, _ in tqdm(self.train_loader, desc="Training"):
                 batch = batch.to(device)
                 x = self.train_dataset.augments(batch)
                 y = self.train_dataset.augments(batch)
@@ -74,5 +116,14 @@ class VICRegTrainer:
 
             metrics = self.evaluate(self.test_loader, device)
             wandb.log(metrics)
+
+            table = self.embeddings_table(self.test_loader, 5, device)
+            wandb.log(
+                {
+                    "embeddings": wandb.Table(
+                        data=table["data"], columns=table["columns"]
+                    )
+                }
+            )
 
         wandb.finish()

@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import kornia.augmentation as augmentation
 import torch
 import torch.nn as nn
@@ -19,10 +21,10 @@ class VICRegDataset(Dataset):
             augmentation.RandomResizedCrop(image_size, scale=(0.5, 1.0)),
         )
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.dataset)
 
-    def __getitem__(self, index: int) -> torch.Tensor:
-        image, _ = self.dataset[index]
+    def __getitem__(self, index: int) -> Tuple[torch.Tensor, int]:
+        image, label = self.dataset[index]
         image = to_tensor(image)
-        return image
+        return image, label
