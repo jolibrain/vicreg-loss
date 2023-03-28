@@ -3,6 +3,7 @@ from collections import defaultdict
 import torch
 import torch.optim as optim
 import torchvision.datasets as datasets
+from hydra.utils import to_absolute_path
 from torch.utils.data import DataLoader
 from torchinfo import summary
 from tqdm import tqdm
@@ -15,28 +16,33 @@ from .vicreg import VICRegLoss
 
 
 class VICRegTrainer:
-    def __init__(self):
-        self.loss = VICRegLoss(
-            inv_coeff=25,
-            var_coeff=15,
-            cov_coeff=1,
-            gamma=1,
-        )
-        self.model = VICRegModel(
-            in_channels=1,
-            n_layers=3,
-            hidden_size=12,
-            representation_size=24,
-        )
-        self.optimizer = optim.AdamW(self.model.parameters(), lr=1e-3)
+    def __init__(
+        self,
+        model: VICRegModel,
+        loss: VICRegLoss,
+        learning_rate: float,
+        batch_size: int,
+    ):
+        self.model = model
+        self.optimizer = optim.AdamW(self.model.parameters(), lr=learning_rate)
+        self.loss = loss
 
         # Create train and validation datasets.
-        train_dataset = datasets.MNIST("./data", train=True, download=True)
-        test_dataset = datasets.MNIST("./data", train=False, download=True)
+        root_path = "./data"
+        root_path = to_absolute_path(
+            root_path
+        )  # Make sure we use a common path amont the runs.
+        train_dataset = datasets.MNIST(root_path, train=True, download=True)
+        test_dataset = datasets.MNIST(root_path, train=False, download=True)
+
         self.train_dataset = VICRegDataset(train_dataset)
         self.test_dataset = VICRegDataset(test_dataset)
-        self.train_loader = DataLoader(self.train_dataset, batch_size=128, shuffle=True)
-        self.test_loader = DataLoader(self.test_dataset, batch_size=128, shuffle=False)
+        self.train_loader = DataLoader(
+            self.train_dataset, batch_size=batch_size, shuffle=True
+        )
+        self.test_loader = DataLoader(
+            self.test_dataset, batch_size=batch_size, shuffle=False
+        )
 
     @torch.no_grad()
     def evaluate(self, dataloader: DataLoader, device: str) -> dict:
@@ -91,8 +97,8 @@ class VICRegTrainer:
 
         return table
 
-    def launch_training(self, n_epochs: int, device: str):
-        wandb.init(project="vicreg")
+    def launch_training(self, n_epochs: int, device: str, config: dict):
+        wandb.init(project="vicreg", config=config)
 
         self.model.to(device)
         summary(self.model, self.train_dataset[0][0].shape, batch_dim=0, device=device)
