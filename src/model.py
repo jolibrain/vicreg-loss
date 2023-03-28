@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import torch
 import torch.nn as nn
 
@@ -39,10 +41,10 @@ class VICRegModel(nn.Module):
             nn.Linear(hidden_size, representation_size),
         )
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         x = self.in_conv(x)
         for layer in self.conv_layers:
             x = layer(x)
         h = self.encoder(x)
         z = self.expander(h)
-        return z
+        return h, z
