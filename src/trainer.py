@@ -90,7 +90,7 @@ class VICRegTrainer:
             h, _ = self.model(images)
 
             data = [
-                [wandb.Image(image.cpu()), label, *embedding.cpu()]
+                [wandb.Image(image.cpu()), label.long().item(), *embedding.cpu()]
                 for image, label, embedding in zip(images, labels, h)
             ]
             table["data"].extend(data)
@@ -120,16 +120,20 @@ class VICRegTrainer:
                 metrics["loss"].backward()
                 self.optimizer.step()
 
+            # Compute wandb logs.
+            logs = dict()
+            metrics = self.evaluate(self.train_loader, device)
+            for metric_name, metric_value in metrics.items():
+                logs[f"train/{metric_name}"] = metric_value
             metrics = self.evaluate(self.test_loader, device)
-            wandb.log(metrics)
+            for metric_name, metric_value in metrics.items():
+                logs[f"test/{metric_name}"] = metric_value
 
-            table = self.embeddings_table(self.test_loader, 5, device)
-            wandb.log(
-                {
-                    "embeddings": wandb.Table(
-                        data=table["data"], columns=table["columns"]
-                    )
-                }
+            table = self.embeddings_table(self.test_loader, n_batches=1, device=device)
+            logs["embeddings"] = wandb.Table(
+                data=table["data"], columns=table["columns"]
             )
+
+            wandb.log(logs)
 
         wandb.finish()

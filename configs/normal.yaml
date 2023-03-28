@@ -1,8 +1,8 @@
 model:
   in_channels: 1
   n_layers: 3
-  hidden_size: 12
-  representation_size: 24
+  hidden_size: 25
+  representation_size: 50
 loss:
   inv_coeff: 25
   var_coeff: 15
@@ -10,6 +10,6 @@ loss:
   gamma: 1
 trainer:
   learning_rate: 1.0e-3
-  batch_size: 128
-  n_epochs: 30
+  batch_size: 1024
+  n_epochs: 100
   device: cuda:2
