@@ -31,8 +31,8 @@ class VICRegTrainer:
         self.optimizer = optim.AdamW(self.model.parameters(), lr=1e-3)
 
         # Create train and validation datasets.
-        train_dataset = datasets.FashionMNIST("./data", train=True, download=True)
-        test_dataset = datasets.FashionMNIST("./data", train=False, download=True)
+        train_dataset = datasets.MNIST("./data", train=True, download=True)
+        test_dataset = datasets.MNIST("./data", train=False, download=True)
         self.train_dataset = VICRegDataset(train_dataset)
         self.test_dataset = VICRegDataset(test_dataset)
         self.train_loader = DataLoader(self.train_dataset, batch_size=128, shuffle=True)
