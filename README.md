@@ -17,10 +17,12 @@ That way it is easy to copy and paste the code into your own project.
 
 ## Installation
 
-Create your own virtual environment, and then install the package like this:
+Create your own virtual environment, and then install the package locally:
 
 ```sh
-pip install git+https://github.com/jolibrain/vicreg-loss.git
+git clone https://github.com/jolibrain/vicreg-loss.git
+cd vicreg-loss
+pip install .
 ```
 
 ## VICReg
