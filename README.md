@@ -25,6 +25,13 @@ cd vicreg-loss
 pip install .
 ```
 
+Optionally, to install and run the tests:
+
+```sh
+pip install -e .[tests]
+python3 -m pytest --import-mode importlib
+```
+
 ## VICReg
 
 The standard VICReg applies the loss to the global representation of each images.
