@@ -15,6 +15,14 @@ The goal of this repository is to provide a simple and hackable implementation
 of this loss.
 That way it is easy to copy and paste the code into your own project.
 
+## Installation
+
+Create your own virtual environment, and then install the package like this:
+
+```sh
+pip install git+https://github.com/jolibrain/vicreg-loss.git
+```
+
 ## VICReg
 
 The standard VICReg applies the loss to the global representation of each images.
