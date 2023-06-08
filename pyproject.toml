@@ -1,6 +1,6 @@
 [project]
 name = "vicreg-loss"
-version = "0.1.0"
+version = "1.0.0"
 description = "Non-official implementation of the VICReg and VICRegL losses."
 readme = "README.md"
 keywords = [
