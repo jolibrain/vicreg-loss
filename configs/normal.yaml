@@ -1,13 +1,16 @@
+---
 model:
   in_channels: 1
   n_layers: 3
-  hidden_size: 25
-  representation_size: 50
+  hidden_size: 5
+  representation_size: 10
+
 loss:
-  inv_coeff: 25
-  var_coeff: 15
+  inv_coeff: 20
+  var_coeff: 5
   cov_coeff: 10
   gamma: 1
+
 trainer:
   learning_rate: 1.0e-3
   batch_size: 1024

@@ -49,6 +49,7 @@ class VICRegTrainer:
         self.model.eval()
 
         metrics = defaultdict(list)
+        images = dict()
         for batch, _ in dataloader:
             batch = batch.to(device)
             x = self.train_dataset.augments(batch)
@@ -59,11 +60,14 @@ class VICRegTrainer:
             for metric_name, metric_value in self.loss(z1, z2).items():
                 metrics[metric_name].append(metric_value.cpu().item())
 
+            images["x"] = x.cpu()
+            images["y"] = y.cpu()
+
         mean_metrics = dict()
         for metric_name, metric_values in metrics.items():
             mean_metrics[metric_name] = sum(metric_values) / len(metric_values)
 
-        return mean_metrics
+        return mean_metrics, images
 
     @torch.no_grad()
     def embeddings_table(
@@ -122,12 +126,21 @@ class VICRegTrainer:
 
             # Compute wandb logs.
             logs = dict()
-            metrics = self.evaluate(self.train_loader, device)
+            metrics, images = self.evaluate(self.train_loader, device)
             for metric_name, metric_value in metrics.items():
                 logs[f"train/{metric_name}"] = metric_value
-            metrics = self.evaluate(self.test_loader, device)
+            logs["images/train"] = [
+                wandb.Image(torch.concat((x, y), dim=2))
+                for x, y in zip(images["x"][:4], images["y"][:4])
+            ]
+
+            metrics, images = self.evaluate(self.test_loader, device)
             for metric_name, metric_value in metrics.items():
                 logs[f"test/{metric_name}"] = metric_value
+            logs["images/test"] = [
+                wandb.Image(torch.concat((x, y), dim=2))
+                for x, y in zip(images["x"][:4], images["y"][:4])
+            ]
 
             table = self.embeddings_table(self.test_loader, n_batches=1, device=device)
             logs["embeddings"] = wandb.Table(

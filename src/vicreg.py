@@ -19,7 +19,36 @@ class VICRegLoss(nn.Module):
         self.cov_coeff = cov_coeff
         self.gamma = gamma
 
-    def representation_loss(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, y: torch.Tensor) -> Dict[str, torch.Tensor]:
+        """Computes the VICReg loss.
+
+        ---
+        Args:
+            x: Features map.
+                Shape of [batch_size, representation_size].
+            y: Features map.
+                Shape of [batch_size, representation_size].
+
+        ---
+        Returns:
+            The VICReg loss.
+                Dictionary where values are of shape of [1,].
+        """
+        metrics = dict()
+        metrics["inv-loss"] = self.inv_coeff * self.representation_loss(x, y)
+        metrics["var-loss"] = (
+            self.var_coeff
+            * (self.variance_loss(x, self.gamma) + self.variance_loss(y, self.gamma))
+            / 2
+        )
+        metrics["cov-loss"] = (
+            self.cov_coeff * (self.covariance_loss(x) + self.covariance_loss(y)) / 2
+        )
+        metrics["loss"] = sum(metrics.values())
+        return metrics
+
+    @staticmethod
+    def representation_loss(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         """Computes the representation loss.
         Force the representations of the same object to be similar.
 
@@ -37,7 +66,8 @@ class VICRegLoss(nn.Module):
         """
         return F.mse_loss(x, y)
 
-    def variance_loss(self, x: torch.Tensor) -> torch.Tensor:
+    @staticmethod
+    def variance_loss(x: torch.Tensor, gamma: float) -> torch.Tensor:
         """Computes the variance loss.
         Push the representations across the batch
         to be different between each other.
@@ -59,10 +89,11 @@ class VICRegLoss(nn.Module):
         """
         x = x - x.mean(dim=0)
         std = x.std(dim=0)
-        var_loss = F.relu(self.gamma - std).mean()
+        var_loss = F.relu(gamma - std).mean()
         return var_loss
 
-    def covariance_loss(self, x: torch.Tensor) -> torch.Tensor:
+    @staticmethod
+    def covariance_loss(x: torch.Tensor) -> torch.Tensor:
         """Computes the covariance loss.
         Decorrelates the embeddings' dimensions, which pushes
         the model to capture more information per dimension.
@@ -81,29 +112,3 @@ class VICRegLoss(nn.Module):
         cov = (x.T @ x) / (x.shape[0] - 1)
         cov_loss = cov.fill_diagonal_(0.0).pow(2).sum() / x.shape[1]
         return cov_loss
-
-    def forward(self, x: torch.Tensor, y: torch.Tensor) -> Dict[str, torch.Tensor]:
-        """Computes the VICReg loss.
-
-        ---
-        Args:
-            x: Features map.
-                Shape of [batch_size, representation_size].
-            y: Features map.
-                Shape of [batch_size, representation_size].
-
-        ---
-        Returns:
-            The VICReg loss.
-                Dictionary where values are of shape of [1,].
-        """
-        metrics = dict()
-        metrics["inv-loss"] = self.inv_coeff * self.representation_loss(x, y)
-        metrics["var-loss"] = (
-            self.var_coeff * (self.variance_loss(x) + self.variance_loss(y)) / 2
-        )
-        metrics["cov-loss"] = (
-            self.cov_coeff * (self.covariance_loss(x) + self.covariance_loss(y)) / 2
-        )
-        metrics["loss"] = sum(metrics.values())
-        return metrics

@@ -14,11 +14,12 @@ class VICRegDataset(Dataset):
 
         self.dataset = labeled_dataset
         self.augments = nn.Sequential(
-            augmentation.RandomGaussianBlur((3, 3), sigma=(0.1, 2.0)),
-            augmentation.RandomGaussianNoise(),
+            augmentation.RandomGaussianBlur((3, 3), sigma=(0.1, 2)),
+            augmentation.RandomGaussianNoise(mean=0, std=0.01),
             augmentation.RandomHorizontalFlip(),
             augmentation.RandomVerticalFlip(),
-            augmentation.RandomResizedCrop(image_size, scale=(0.5, 1.0)),
+            augmentation.RandomResizedCrop(image_size, scale=(0.9, 1.0)),
+            # augmentation.RandomPerspective(0.5, p=1.0),
         )
 
     def __len__(self) -> int:
