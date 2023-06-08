@@ -15,6 +15,42 @@ The goal of this repository is to provide a simple and hackable implementation
 of this loss.
 That way it is easy to copy and paste the code into your own project.
 
+## Installation
+
+Create your own virtual environment, and then install the package locally:
+
+```sh
+git clone https://github.com/jolibrain/vicreg-loss.git
+cd vicreg-loss
+pip install .
+```
+
+Optionally, to install and run the tests:
+
+```sh
+pip install pytest
+python3 -m pytest --import-mode importlib
+```
+
+## How to use
+
+The package provides two losses: `VICRegLoss` and `VICRegLLoss`, which
+can be used similarly. Here's an example for `VICRegLoss`.
+
+```py
+from vicreg_loss import VICReg
+
+
+loss_fn = VICReg()
+
+x_features = torch.randn(128, 32)  # Shape of [batch_size, hidden_size].
+y_features = torch.randn(128, 32)
+
+# Returns a dict containing the different losses.
+# The main one is `losses["loss"]`.
+losses = loss_fn(x_features, y_features)
+```
+
 ## VICReg
 
 The standard VICReg applies the loss to the global representation of each images.
@@ -36,6 +72,8 @@ can be mapped to a specific patch location in the original image, allowing a
 patch matching between two version of the same image.
 
 ![VICRegL overview](./.images/vicregl-overview.png)
+
+---
 
 All credits go to the original paper and the official implementation:
 
