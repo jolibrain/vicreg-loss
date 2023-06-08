@@ -32,6 +32,25 @@ pip install pytest
 python3 -m pytest --import-mode importlib
 ```
 
+## How to use
+
+The package provides two losses: `VICRegLoss` and `VICRegLLoss`, which
+can be used similarly. Here's an example for `VICRegLoss`.
+
+```py
+from vicreg_loss import VICReg
+
+
+loss_fn = VICReg()
+
+x_features = torch.randn(128, 32)  # Shape of [batch_size, hidden_size].
+y_features = torch.randn(128, 32)
+
+# Returns a dict containing the different losses.
+# The main one is `losses["loss"]`.
+losses = loss_fn(x_features, y_features)
+```
+
 ## VICReg
 
 The standard VICReg applies the loss to the global representation of each images.
