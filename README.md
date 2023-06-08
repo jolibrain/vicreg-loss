@@ -28,7 +28,7 @@ pip install .
 Optionally, to install and run the tests:
 
 ```sh
-pip install -e .[tests]
+pip install pytest
 python3 -m pytest --import-mode importlib
 ```
 
