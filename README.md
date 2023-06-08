@@ -54,6 +54,8 @@ patch matching between two version of the same image.
 
 ![VICRegL overview](./.images/vicregl-overview.png)
 
+---
+
 All credits go to the original paper and the official implementation:
 
 * VICReg: <https://arxiv.org/abs/2105.04906>
