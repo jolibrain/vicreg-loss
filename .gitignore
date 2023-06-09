@@ -2,3 +2,5 @@
 .venv/
 .pdm-python
 dist/
+build/
+vicreg_loss.egg-info/
